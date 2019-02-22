@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"helloDocker/database"
+	"helloDocker/model"
 	"io"
 	"io/ioutil"
 	"log"
@@ -83,16 +85,18 @@ func SaveImg(w http.ResponseWriter, r *http.Request) {
 	CorsHeader(w)
 	if "POST" == r.Method {
 		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
-		var img map[string]string
-		json.Unmarshal(body, &img) //json解析
-		err := Insert(Dbname, Cname, img["deviceid"], img["imgurl"])
+		var jsono map[string]string
+		json.Unmarshal(body, &jsono) //json解析
+		db:=database.DbConnection{Dbname,Cname,nil,nil,nil}
+		img :=model.Img{jsono["deviceid"], jsono["imgurl"]}
+		err := img.Save(db)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			fmt.Println(err.Error())
 			return
 		}
 		defer r.Body.Close()
-		var data Response
+		data :=Response{}
 		data.Status = "success"
 		json.NewEncoder(w).Encode(data)
 	}
@@ -105,17 +109,35 @@ func FindImg(w http.ResponseWriter, r *http.Request) {
 		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
 		var device map[string]string
 		json.Unmarshal(body, &device) //json解析
-		err,imgurl:=Find(Dbname,Cname,device["deviceid"])
+		img:=model.Img{device["deviceid"],""}
+		err,_:=img.Find(database.DbConnection{Dbname,Cname,nil,nil,nil})
 		if err!=nil{
 			http.Error(w, err.Error(), 500)
 			fmt.Println(err.Error())
 			return
 		}
 		defer r.Body.Close()
-		var data Response
-		data.Status = imgurl
+		data:=Response{}
+		data.Status=img.Imgurl
 		json.NewEncoder(w).Encode(data)
+	}
+}
 
+func BackImg(w http.ResponseWriter, r *http.Request)  {
+	CorsHeader(w)
+	if "POST"==r.Method{
+		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
+		var post map[string]string
+ 		json.Unmarshal(body, &post) //json解析
+ 		back:=model.Back{}
+ 		err,_:=back.Find(database.DbConnection{Dbname,Cname,nil,nil,nil})
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			fmt.Println(err.Error())
+			return
+		}
+		defer r.Body.Close()
+		json.NewEncoder(w).Encode(back)
 	}
 }
 
@@ -123,6 +145,8 @@ func main() {
 	http.HandleFunc("/assets/img", PathServer)
 	http.HandleFunc("/assets/img/save", SaveImg)
 	http.HandleFunc("/assets/img/deviceid", FindImg)
+	http.HandleFunc("/assets/img/back",BackImg)
+
 	fs := http.FileServer(http.Dir(path))
 	http.Handle("/assets/img/", http.StripPrefix("/assets/img/", fs)) //设备图片
 	err := http.ListenAndServe(":8090", nil)
