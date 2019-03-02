@@ -2,7 +2,7 @@ package model
 
 import (
 	"gopkg.in/mgo.v2/bson"
-	"helloDocker/database"
+	"goserver/database"
 )
 
 type Img struct {

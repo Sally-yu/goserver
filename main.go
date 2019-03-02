@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"helloDocker/database"
-	"helloDocker/model"
+	"goserver/database"
+	"goserver/model"
 	"io"
 	"io/ioutil"
 	"log"
