@@ -87,8 +87,8 @@ func SaveImg(w http.ResponseWriter, r *http.Request) {
 		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
 		var jsono map[string]string
 		json.Unmarshal(body, &jsono) //json解析
-		db:=database.DbConnection{Dbname,Cname,nil,nil,nil}
-		img :=model.Img{jsono["deviceid"], jsono["imgurl"]}
+		db := database.DbConnection{Dbname, Cname, nil, nil, nil}
+		img := model.Img{jsono["deviceid"], jsono["imgurl"]}
 		err := img.Save(db)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
@@ -96,7 +96,7 @@ func SaveImg(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer r.Body.Close()
-		data :=Response{}
+		data := Response{}
 		data.Status = "success"
 		json.NewEncoder(w).Encode(data)
 	}
@@ -109,28 +109,28 @@ func FindImg(w http.ResponseWriter, r *http.Request) {
 		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
 		var device map[string]string
 		json.Unmarshal(body, &device) //json解析
-		img:=model.Img{device["deviceid"],""}
-		err,_:=img.Find(database.DbConnection{Dbname,Cname,nil,nil,nil})
-		if err!=nil{
+		img := model.Img{device["deviceid"], ""}
+		err, _ := img.Find(database.DbConnection{Dbname, Cname, nil, nil, nil})
+		if err != nil {
 			http.Error(w, err.Error(), 500)
 			fmt.Println(err.Error())
 			return
 		}
 		defer r.Body.Close()
-		data:=Response{}
-		data.Status=img.Imgurl
+		data := Response{}
+		data.Status = img.Imgurl
 		json.NewEncoder(w).Encode(data)
 	}
 }
 
-func BackImg(w http.ResponseWriter, r *http.Request)  {
+func BackImg(w http.ResponseWriter, r *http.Request) {
 	CorsHeader(w)
-	if "POST"==r.Method{
+	if "POST" == r.Method {
 		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
 		var post map[string]string
- 		json.Unmarshal(body, &post) //json解析
- 		back:=model.Back{}
- 		err,_:=back.Find(database.DbConnection{Dbname,Cname,nil,nil,nil})
+		json.Unmarshal(body, &post) //json解析
+		back := model.Back{}
+		err, _ := back.Find(database.DbConnection{Dbname, Cname, nil, nil, nil})
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			fmt.Println(err.Error())
@@ -141,11 +141,48 @@ func BackImg(w http.ResponseWriter, r *http.Request)  {
 	}
 }
 
+func WorkSpace(w http.ResponseWriter, r *http.Request) {
+	CorsHeader(w)
+	if "POST" == r.Method {
+		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
+		var post = struct {
+			Opt string
+			Workspace model.WorkSpace
+		}{}
+		worklist:=[]model.WorkSpace{}
+		json.Unmarshal(body, &post) //json解
+		var err error
+		switch post.Opt {
+		case "save":
+			err = post.Workspace.Save(database.DbConnection{"docdb", "workspace", nil, nil, nil})
+			json.NewEncoder(w).Encode(post.Workspace) //response一个workspace
+			break
+		case "find":
+			err, _= post.Workspace.Find(database.DbConnection{"docdb", "workspace", nil, nil, nil})
+			json.NewEncoder(w).Encode(post.Workspace) //response一个workspace
+			break
+		case "all":
+			err,worklist= post.Workspace.FindAll(database.DbConnection{"docdb", "workspace", nil, nil, nil})
+			json.NewEncoder(w).Encode(worklist) //response一个workspace
+			break
+		default:
+			break
+		}
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			fmt.Println(err.Error())
+			return
+		}
+		defer r.Body.Close()
+	}
+}
+
 func main() {
 	http.HandleFunc("/assets/img", PathServer)
 	http.HandleFunc("/assets/img/save", SaveImg)
 	http.HandleFunc("/assets/img/deviceid", FindImg)
-	http.HandleFunc("/assets/img/back",BackImg)
+	http.HandleFunc("/assets/img/back", BackImg)
+	http.HandleFunc("/workspace", WorkSpace)
 
 	fs := http.FileServer(http.Dir(path))
 	http.Handle("/assets/img/", http.StripPrefix("/assets/img/", fs)) //设备图片

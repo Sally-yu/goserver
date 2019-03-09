@@ -29,7 +29,8 @@ func (db *DbConnection) ConnDB() error {
 	db.Session.SetMode(mgo.Eventual, true) //不缓存连接模式
 	db.Database = db.Session.DB(db.Dbname)
 	db.Collection = db.Database.C(db.Cname)
-	fmt.Println("connect to database: %s collection: %s ", db.Database, db.Collection)
+	fmt.Println("connect to database:",db.Database)
+	fmt.Println("connect to collection: ",db.Collection)
 	return nil
 }
 

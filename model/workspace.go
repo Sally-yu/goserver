@@ -1,0 +1,75 @@
+package model
+
+import (
+	"gopkg.in/mgo.v2/bson"
+	"goserver/database"
+)
+
+type Node struct {
+	Svg string `json:"svg" bson:"svg"`
+	Key int `json:"key" bson:"key"`
+	Loc string `json:"loc" bson:"loc"`
+	Deviceid string `json:"deviceid" bson:"deviceid"`   //关联设备的id
+}
+
+type Link struct {
+	From int `json:"from" bson:"from"`
+	To int `json:"to" bson:"to"`
+	Points []int `json:"points" bson:"points"`
+}
+
+type WorkSpace struct {
+	Key string `json:"key" bson:"key"`
+	Class string `json:"class" bson:"class"`
+	NodeDataArray []Node `json:"nodeDataArray" bson:"nodeDataArray"`
+	LinkDataArray []Link `json:"linkDataArray" bson:"linkDataArray"`
+}
+
+func (workspc *WorkSpace) Save(db database.DbConnection) error {
+	db.ConnDB()
+	err := db.Collection.Insert(&workspc)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (workspc *WorkSpace) Find(db database.DbConnection) (error, *WorkSpace) {
+	db.ConnDB()
+	err := db.Collection.Find(bson.M{"key": workspc.Key}).One(&workspc)
+	if err != nil {
+		return err, nil
+	}
+	return nil, workspc
+}
+
+func (workspc *WorkSpace) FindAll(db database.DbConnection) (error, []WorkSpace){
+	db.ConnDB()
+	res:=[]WorkSpace{}
+	err:=db.Collection.Find(nil).All(res)
+	if err != nil {
+		return err, nil
+	}
+	return nil, res
+}
+
+func (workspc *WorkSpace) Remove(db database.DbConnection)  error {
+	db.ConnDB()
+	err:=db.Collection.Remove(bson.M{"key":workspc.Key})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (workspc *WorkSpace) Update(db database.DbConnection) error {
+	err:=workspc.Remove(db)
+	if err != nil {
+		return err
+	}
+	err=workspc.Save(db)
+	if err != nil {
+		return err
+	}
+	return nil
+}
