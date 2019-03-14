@@ -10,12 +10,13 @@ type Node struct {
 	Key int `json:"key" bson:"key"`
 	Loc string `json:"loc" bson:"loc"`
 	Deviceid string `json:"deviceid" bson:"deviceid"`   //关联设备的id
+	Status string `json:"status" bson:"status"`  //运行状态指示
 }
 
 type Link struct {
 	From int `json:"from" bson:"from"`
 	To int `json:"to" bson:"to"`
-	Points []int `json:"points" bson:"points"`
+	Points []string `json:"points" bson:"points"`
 }
 
 type WorkSpace struct {
@@ -46,8 +47,9 @@ func (workspc *WorkSpace) Find(db database.DbConnection) (error, *WorkSpace) {
 func (workspc *WorkSpace) FindAll(db database.DbConnection) (error, []WorkSpace){
 	db.ConnDB()
 	res:=[]WorkSpace{}
-	err:=db.Collection.Find(nil).All(res)
+	err:=db.Collection.Find(nil).All(&res)
 	if err != nil {
+		print(err.Error())
 		return err, nil
 	}
 	return nil, res

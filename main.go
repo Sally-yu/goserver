@@ -146,10 +146,10 @@ func WorkSpace(w http.ResponseWriter, r *http.Request) {
 	if "POST" == r.Method {
 		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
 		var post = struct {
-			Opt string
+			Opt       string
 			Workspace model.WorkSpace
 		}{}
-		worklist:=[]model.WorkSpace{}
+		worklist := []model.WorkSpace{}
 		json.Unmarshal(body, &post) //json解
 		var err error
 		switch post.Opt {
@@ -158,12 +158,16 @@ func WorkSpace(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(post.Workspace) //response一个workspace
 			break
 		case "find":
-			err, _= post.Workspace.Find(database.DbConnection{"docdb", "workspace", nil, nil, nil})
+			err, _ = post.Workspace.Find(database.DbConnection{"docdb", "workspace", nil, nil, nil})
 			json.NewEncoder(w).Encode(post.Workspace) //response一个workspace
 			break
 		case "all":
-			err,worklist= post.Workspace.FindAll(database.DbConnection{"docdb", "workspace", nil, nil, nil})
+			err, worklist = post.Workspace.FindAll(database.DbConnection{"docdb", "workspace", nil, nil, nil})
 			json.NewEncoder(w).Encode(worklist) //response一个workspace
+			break
+		case "delete":
+			err = post.Workspace.Remove(database.DbConnection{"docdb", "workspace", nil, nil, nil})
+			json.NewEncoder(w).Encode("delete success") //response一个workspace
 			break
 		default:
 			break
