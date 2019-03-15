@@ -28,6 +28,17 @@ func (img *Img) Find(db database.DbConnection) (error, *Img) {
 	return nil, img
 }
 
+func (img *Img) FindAll(db database.DbConnection) (error, []Img){
+	db.ConnDB()
+	res:=[]Img{}
+	err:=db.Collection.Find(nil).All(&res)
+	if err != nil {
+		print(err.Error())
+		return err, nil
+	}
+	return nil, res
+}
+
 func (img *Img) Remove(db database.DbConnection) error {
 	db.ConnDB()
 	err := db.Collection.Remove(bson.M{"deviceid": img.Deviceid})

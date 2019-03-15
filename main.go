@@ -16,12 +16,14 @@ import (
 type Sizer interface {
 	Size() int64
 }
+
 type Response struct {
 	Status string
 }
 
 const (
 	path   = "/usr/local/nginx/html/assets/img"
+	uploadPath="/usr/local/nginx/html/assets/upload"
 	Dbname = "imgdb"
 	Cname  = "imgcollection"
 )
@@ -37,7 +39,7 @@ func CorsHeader(w http.ResponseWriter) {
 }
 
 //上传保存图片
-func PathServer(w http.ResponseWriter, r *http.Request) {
+func PathServer(w http.ResponseWriter, r *http.Request,p string) {
 	CorsHeader(w) //优先处理跨域，否则后续函数不会执行
 	if "POST" == r.Method {
 		fmt.Println(r)
@@ -50,25 +52,25 @@ func PathServer(w http.ResponseWriter, r *http.Request) {
 
 		filename := handler.Filename //取文件名
 		defer file.Close()
-		if _, err := os.Stat(path); err == nil {
-			fmt.Println("path exists 1", path)
+		if _, err := os.Stat(p); err == nil {
+			fmt.Println("path exists 1", p)
 		} else {
-			fmt.Println("path not exists ", path)
-			err := os.MkdirAll(path, 0711)
+			fmt.Println("path not exists ", p)
+			err := os.MkdirAll(p, 0711)
 			// check again
 			if err != nil {
 				io.WriteString(w, "Error creating directory")
 				return
 			}
-			if _, err := os.Stat(path); err == nil {
-				fmt.Println("path exists 2", path)
+			if _, err := os.Stat(p); err == nil {
+				fmt.Println("path exists 2", p)
 			}
 		}
 
-		if _, err := os.Stat(path + "/" + filename); err == nil {
-			os.Remove(path + "/" + filename) //删除文件
+		if _, err := os.Stat(p + "/" + filename); err == nil {
+			os.Remove(p + "/" + filename) //删除文件
 		}
-		f, err := os.Create(path + "/" + filename) //创建文件
+		f, err := os.Create(p + "/" + filename) //创建文件
 		if err != nil {
 			return
 		}
@@ -81,7 +83,7 @@ func PathServer(w http.ResponseWriter, r *http.Request) {
 }
 
 //保存到数据库
-func SaveImg(w http.ResponseWriter, r *http.Request) {
+func SaveLink(w http.ResponseWriter, r *http.Request) {
 	CorsHeader(w)
 	if "POST" == r.Method {
 		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
@@ -181,17 +183,57 @@ func WorkSpace(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func Upload(w http.ResponseWriter, r *http.Request) {
+	PathServer(w,r,uploadPath)
+	CorsHeader(w) //优先处理跨域，否则后续函数不会执行
+	if "POST" == r.Method {
+		fmt.Println(r)
+		_, handler, err := r.FormFile("file") //antd上传控件formdata中文件key为file
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			fmt.Println(err.Error())
+			return
+		}
+		filename := handler.Filename //取文件名
+		db:=database.DbConnection{Dbname,"cussvg",nil,nil,nil}
+		svg:=model.Img{}
+		svg.Imgurl=filename
+		err=svg.Save(db)
+	}
+}
+
+func SaveSvg(w http.ResponseWriter, r *http.Request){
+	PathServer(w,r,path)
+}
+
+func CusSvg(w http.ResponseWriter,r *http.Request){
+	CorsHeader(w)
+	if "GET" == r.Method {
+		svgList := []model.Img{}
+		svg:=model.Img{}
+		var err error
+		err, svgList = svg.FindAll(database.DbConnection{Dbname, "cussvg", nil, nil, nil})
+		json.NewEncoder(w).Encode(svgList) //response一个workspace
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			fmt.Println(err.Error())
+			return
+		}
+		defer r.Body.Close()
+	}}
+
 func main() {
-	http.HandleFunc("/assets/img", PathServer)
-	http.HandleFunc("/assets/img/save", SaveImg)
-	http.HandleFunc("/assets/img/deviceid", FindImg)
-	http.HandleFunc("/assets/img/back", BackImg)
-	http.HandleFunc("/workspace", WorkSpace)
+	http.HandleFunc("/assets/img", SaveSvg)//保存svg 自带get文件服务器
+	http.HandleFunc("/assets/img/save", SaveLink)//保存设备和svg的联系
+	http.HandleFunc("/assets/upload", Upload)//上传自定义svg ，自带get文件服务器
+	http.HandleFunc("/assets/img/deviceid", FindImg)//加载图片
+	http.HandleFunc("/assets/img/back", BackImg)//
+	http.HandleFunc("/assets/img/cussvg", CusSvg)//get上传的自定义svg
+	http.HandleFunc("/workspace", WorkSpace)//保存工作区
 
 	fs := http.FileServer(http.Dir(path))
 	http.Handle("/assets/img/", http.StripPrefix("/assets/img/", fs)) //设备图片
 	err := http.ListenAndServe(":8090", nil)
-
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
