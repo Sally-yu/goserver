@@ -185,34 +185,40 @@ func WorkSpace(w http.ResponseWriter, r *http.Request) {
 
 func Upload(w http.ResponseWriter, r *http.Request) {
 	PathServer(w,r,uploadPath)
-	CorsHeader(w) //优先处理跨域，否则后续函数不会执行
-	if "POST" == r.Method {
-		fmt.Println(r)
-		_, handler, err := r.FormFile("file") //antd上传控件formdata中文件key为file
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			fmt.Println(err.Error())
-			return
-		}
-		filename := handler.Filename //取文件名
-		db:=database.DbConnection{Dbname,"cussvg",nil,nil,nil}
-		svg:=model.Img{}
-		svg.Imgurl=filename
-		err=svg.Save(db)
-	}
 }
 
 func SaveSvg(w http.ResponseWriter, r *http.Request){
 	PathServer(w,r,path)
 }
 
+//跟新指定的自定义分组
+func UpdateCus(w http.ResponseWriter,r *http.Request){
+	CorsHeader(w)
+	if "POST" == r.Method {
+		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
+		cus := model.Cus{}
+		json.Unmarshal(body, &cus) //json解析
+		err:= cus.Update(database.DbConnection{"docdb", "cus", nil, nil, nil})
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			fmt.Println(err.Error())
+			return
+		}
+		defer r.Body.Close()
+		data := Response{}
+		data.Status = "update"
+		json.NewEncoder(w).Encode(data)
+	}
+}
+
+//获取所有的自定义分组
 func CusSvg(w http.ResponseWriter,r *http.Request){
 	CorsHeader(w)
 	if "GET" == r.Method {
-		svgList := []model.Img{}
-		svg:=model.Img{}
+		svgList := []model.Cus{}
+		svg:=model.Cus{}
 		var err error
-		err, svgList = svg.FindAll(database.DbConnection{Dbname, "cussvg", nil, nil, nil})
+		err, svgList = svg.FindAll(database.DbConnection{"docdb", "cus", nil, nil, nil})
 		json.NewEncoder(w).Encode(svgList) //response一个workspace
 		if err != nil {
 			http.Error(w, err.Error(), 500)
@@ -227,12 +233,13 @@ func main() {
 	http.HandleFunc("/assets/img/save", SaveLink)//保存设备和svg的联系
 	http.HandleFunc("/assets/upload", Upload)//上传自定义svg ，自带get文件服务器
 	http.HandleFunc("/assets/img/deviceid", FindImg)//加载图片
-	http.HandleFunc("/assets/img/back", BackImg)//
+	http.HandleFunc("/assets/img/back", BackImg)
 	http.HandleFunc("/assets/img/cussvg", CusSvg)//get上传的自定义svg
+	http.HandleFunc("/assets/updateCus", UpdateCus)//更新自定义信息
 	http.HandleFunc("/workspace", WorkSpace)//保存工作区
 
-	fs := http.FileServer(http.Dir(path))
-	http.Handle("/assets/img/", http.StripPrefix("/assets/img/", fs)) //设备图片
+	fs := http.FileServer(http.Dir("/usr/local/nginx/html/assets"))
+	http.Handle("/assets/", http.StripPrefix("/assets/", fs)) //开启assets文件夹服务
 	err := http.ListenAndServe(":8090", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
