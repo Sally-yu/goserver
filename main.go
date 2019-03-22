@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // 获取大小的接口
@@ -77,6 +78,7 @@ func PathServer(w http.ResponseWriter, r *http.Request,p string) {
 		defer f.Close()
 		var data Response
 		data.Status = "success"
+		fmt.Println(filename)
 		json.NewEncoder(w).Encode(data)
 		io.Copy(f, file) //复制文件内容
 	}
@@ -198,7 +200,19 @@ func UpdateCus(w http.ResponseWriter,r *http.Request){
 		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
 		cus := model.Cus{}
 		json.Unmarshal(body, &cus) //json解析
-		err:= cus.Update(database.DbConnection{"docdb", "cus", nil, nil, nil})
+		c:=model.Cus{Divid:cus.Divid}
+		err,_:=c.Find(database.DbConnection{"docdb", "cus", nil, nil, nil})
+		fmt.Println("c:",c.Svg)
+		fmt.Println("cus:",cus.Svg)
+		if err==nil{
+			a:=append(cus.Svg,c.Svg...) //合并数组，追加svg
+			cus.Svg=a
+		}
+		cus.RemoveRepeat() //svg去重
+		for i:=0 ;i<len(cus.Svg);i++{
+			cus.Svg[i].Svg=strings.Replace(cus.Svg[i].Svg,".svg","",1)//去.svg后缀
+		}
+		err= cus.Update(database.DbConnection{"docdb", "cus", nil, nil, nil})
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			fmt.Println(err.Error())
@@ -228,6 +242,19 @@ func CusSvg(w http.ResponseWriter,r *http.Request){
 		defer r.Body.Close()
 	}}
 
+func FindName(w http.ResponseWriter,r *http.Request){
+	CorsHeader(w)
+	if "POST"==r.Method{
+		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
+		work := model.WorkSpace{}
+		var name=""
+		json.Unmarshal(body, &name) //json解析
+		res:=Response{}
+		res.Status=work.FindName(database.DbConnection{"docdb","workspace",nil,nil,nil},name)
+		json.NewEncoder(w).Encode(res) //response一个workspace
+	}
+}
+
 func main() {
 	http.HandleFunc("/assets/img", SaveSvg)//保存svg 自带get文件服务器
 	http.HandleFunc("/assets/img/save", SaveLink)//保存设备和svg的联系
@@ -237,6 +264,7 @@ func main() {
 	http.HandleFunc("/assets/img/cussvg", CusSvg)//get上传的自定义svg
 	http.HandleFunc("/assets/updateCus", UpdateCus)//更新自定义信息
 	http.HandleFunc("/workspace", WorkSpace)//保存工作区
+	http.HandleFunc("/workspace/findname", FindName)//保存工作区
 
 	fs := http.FileServer(http.Dir("/usr/local/nginx/html/assets"))
 	http.Handle("/assets/", http.StripPrefix("/assets/", fs)) //开启assets文件夹服务

@@ -18,6 +18,17 @@ type Cus struct {
 	Svg     []Svg  `json:"svg" bson:"svg"`
 }
 
+
+//单个cus
+func (cus *Cus) Find(db database.DbConnection) (error, *Cus) {
+	db.ConnDB()
+	err := db.Collection.Find(bson.M{"divid": cus.Divid}).One(&cus)
+	if err != nil {
+		return err, nil
+	}
+	return nil, cus
+}
+
 //返回所有自定义分组信息
 func (cus *Cus) FindAll(db database.DbConnection) (error, []Cus) {
 	db.ConnDB()
@@ -55,4 +66,23 @@ func (cus *Cus) Update(db database.DbConnection) error {
 		return err
 	}
 	return nil
+}
+
+//去重
+func (cus *Cus) RemoveRepeat() {
+	arr:=[]Svg{}
+	svg:=cus.Svg
+	for i := 0; i < len(svg); i++ {
+		repeat := false
+		for j := i + 1; j < len(svg); j++ {
+			if svg[i].Svg == svg[j].Svg {
+				repeat = true
+				break
+			}
+		}
+		if !repeat {
+			arr = append(arr, svg[i])
+		}
+	}
+	cus.Svg=arr
 }

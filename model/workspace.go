@@ -22,6 +22,7 @@ type Link struct {
 }
 
 type WorkSpace struct {
+	Name string `json:"name" bson:"name"`
 	Key string `json:"key" bson:"key"`
 	Class string `json:"class" bson:"class"`
 	NodeDataArray []Node `json:"nodeDataArray" bson:"nodeDataArray"`
@@ -35,6 +36,15 @@ func (workspc *WorkSpace) Save(db database.DbConnection) error {
 		return err
 	}
 	return nil
+}
+
+func (workspc *WorkSpace) FindName(db database.DbConnection,name string) string{
+	db.ConnDB()
+	db.Collection.Find(bson.M{"name": name}).One(&workspc)
+	if len(workspc.Name)>0{
+		return "0" //重复
+	}
+	return "1"
 }
 
 func (workspc *WorkSpace) Find(db database.DbConnection) (error, *WorkSpace) {
