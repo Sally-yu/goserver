@@ -11,13 +11,15 @@ type Node struct {
 	Loc string `json:"loc" bson:"loc"`
 	Deviceid string `json:"deviceid" bson:"deviceid"`   //关联设备的id
 	Status string `json:"status" bson:"status"`  //运行状态指示
+	Category string `json:"category" bson:"category"` //分类
+	Text string `json:"text" bson:"text"` //评论用的text标签
 }
 
 type Link struct {
 	From int `json:"from" bson:"from"`
 	To int `json:"to" bson:"to"`
-	FromSpot string `json:"fromSpot" bson:"fromSpot"`
-	FoSpot string `json:"toSpot" bson:"toSpot"`
+	FromPortId string `json:"fromPortId" bson:"fromPortId"`
+	ToPortId string `json:"toPortId" bson:"toPortId"`
 	Points []string `json:"points" bson:"points"`
 }
 
