@@ -63,7 +63,7 @@ func (workspc *WorkSpace) FindAll(db database.DbConnection) (error, []WorkSpace)
 	res:=[]WorkSpace{}
 	err:=db.Collection.Find(nil).All(&res)
 	if err != nil {
-		print(err.Error())
+		println(err.Error())
 		return err, nil
 	}
 	return nil, res
