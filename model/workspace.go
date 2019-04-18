@@ -16,8 +16,8 @@ type Node struct {
 type Link struct {
 	From int `json:"from" bson:"from"`
 	To int `json:"to" bson:"to"`
-	FromPortId string `json:"fromPortId" bson:"fromPortId"`
-	ToPortId string `json:"toPortId" bson:"toPortId"`
+	FromPortId string `json:"fromPortId" bson:"fromPortId"` //与前端页面中绑定的字段key重名，保存连线发出口
+	ToPortId string `json:"toPortId" bson:"toPortId"`  //与前端页面中绑定的字段key重名，保存连线结束口
 	Points []string `json:"points" bson:"points"`
 }
 
