@@ -167,7 +167,7 @@ func SaveSvg(w http.ResponseWriter, r *http.Request){
 	PathServer(w,r,path)
 }
 
-//跟新指定的自定义分组
+//更新指定的自定义分组
 func UpdateCus(w http.ResponseWriter,r *http.Request){
 	CorsHeader(w)
 	if "POST" == r.Method {

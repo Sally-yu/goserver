@@ -61,7 +61,7 @@ func main() {
 
 	fs := http.FileServer(http.Dir("/usr/local/nginx/html/assets"))
 	http.Handle("/assets/", http.StripPrefix("/assets/", fs)) //开启assets文件夹服务
-	println("server start…")
+	println("goserver start… listen 8090")
 	err := http.ListenAndServe(":8090", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)

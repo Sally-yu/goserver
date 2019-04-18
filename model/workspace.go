@@ -16,8 +16,8 @@ type Node struct {
 type Link struct {
 	From int `json:"from" bson:"from"`
 	To int `json:"to" bson:"to"`
-	FromSpot string `json:"fromSpot" bson:"fromSpot"`
-	FoSpot string `json:"toSpot" bson:"toSpot"`
+	FromPortId string `json:"fromPortId" bson:"fromPortId"`
+	ToPortId string `json:"toPortId" bson:"toPortId"`
 	Points []string `json:"points" bson:"points"`
 }
 
