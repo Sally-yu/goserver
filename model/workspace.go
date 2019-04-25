@@ -6,6 +6,8 @@ import (
 )
 
 type Node struct {
+	Category string `json:"category" bson:"category"` //图形种类
+	Text string `json:"text" bson:"text"` //备注用的内容
 	Svg string `json:"svg" bson:"svg"`
 	Key int `json:"key" bson:"key"`
 	Loc string `json:"loc" bson:"loc"`
