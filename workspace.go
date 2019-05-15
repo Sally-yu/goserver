@@ -119,7 +119,7 @@ func BackImg(w http.ResponseWriter, r *http.Request) {
 }
 
 func WorkSpace(w http.ResponseWriter, r *http.Request) {
-	w=CorsHeader(w)
+	CorsHeader(w)
 	if "POST" == r.Method {
 		body, _ := ioutil.ReadAll(r.Body) //获取post的数据
 		var post = struct {
@@ -214,7 +214,8 @@ func CusSvg(w http.ResponseWriter,r *http.Request){
 			return
 		}
 		defer r.Body.Close()
-	}}
+	}
+}
 
 func FindName(w http.ResponseWriter,r *http.Request){
 	CorsHeader(w)

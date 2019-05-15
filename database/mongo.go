@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	MONGODB_URL = "127.0.0.1:27017"
+	//MONGODB_URL = "127.0.0.1:27017"
+	MONGODB_URL="mongodb://yu:123456@127.0.0.1:27017"
 )
 
 type DbConnection struct {

@@ -19,8 +19,6 @@ const (
 	uploadPath="/usr/local/nginx/html/assets/upload"
 	Dbname = "imgdb"
 	Cname  = "imgcollection"
-	Idbname = "wsg"
-	Icname =  "test"
 )
 
 //const path="c:/img"
@@ -50,14 +48,6 @@ func main() {
 	http.HandleFunc("/workspace", WorkSpace)         //保存工作区
 	http.HandleFunc("/workspace/findname", FindName) //保存工作区
 
-	//opc、influx
-	http.HandleFunc("/assets/influx/get", GetInfluxlist)
-	http.HandleFunc("/assets/influx/edit", UpdateInfluxlist)
-	http.HandleFunc("/assets/influx/delete", DelInfluxlist)
-	http.HandleFunc("/assets/influx/insert", InsertInfluxlist)
-	http.HandleFunc("/assets/opcua/get", GetOpcualist)
-	http.HandleFunc("/assets/opcua/insert", InsertOpcualist)
-	http.HandleFunc("/assets/opcua/update", UpdateOpcualist)
 
 	fs := http.FileServer(http.Dir("/usr/local/nginx/html/assets"))
 	http.Handle("/assets/", http.StripPrefix("/assets/", fs)) //开启assets文件夹服务
