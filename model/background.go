@@ -24,6 +24,7 @@ func (back *Back) Save(db database.DbConnection) error {
 	if err != nil {
 		return err
 	}
+	defer db.CloseDB()
 	return nil
 }
 
@@ -33,6 +34,7 @@ func (back *Back) Find(db database.DbConnection) (error, *Back) {
 	if err != nil {
 		return err, nil
 	}
+	defer db.CloseDB()
 	return nil, back
 }
 
@@ -42,6 +44,7 @@ func (back *Back) Remove(db database.DbConnection)  error {
 	if err != nil {
 		return err
 	}
+	defer db.CloseDB()
 	return nil
 }
 
@@ -54,5 +57,6 @@ func (back *Back) Update(db database.DbConnection) error {
 	if err != nil {
 		return err
 	}
+	defer db.CloseDB()
 	return nil
 }

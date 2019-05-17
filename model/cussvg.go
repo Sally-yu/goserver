@@ -26,6 +26,7 @@ func (cus *Cus) Find(db database.DbConnection) (error, *Cus) {
 	if err != nil {
 		return err, nil
 	}
+	defer db.CloseDB()
 	return nil, cus
 }
 
@@ -38,6 +39,7 @@ func (cus *Cus) FindAll(db database.DbConnection) (error, []Cus) {
 		print(err.Error())
 		return err, nil
 	}
+	defer db.CloseDB()
 	return nil, res
 }
 
@@ -47,12 +49,14 @@ func (cus *Cus) Save(db database.DbConnection) error {
 	if err != nil {
 		return err
 	}
+	defer db.CloseDB()
 	return nil
 }
 
 func (cus *Cus) Remove(db database.DbConnection) error {
 	db.ConnDB()
 	db.Collection.Remove(bson.M{"divid": cus.Divid})
+	defer db.CloseDB()
 	return nil
 }
 
@@ -65,6 +69,7 @@ func (cus *Cus) Update(db database.DbConnection) error {
 	if err != nil {
 		return err
 	}
+	defer db.CloseDB()
 	return nil
 }
 

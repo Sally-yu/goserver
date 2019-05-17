@@ -37,6 +37,7 @@ func (workspc *WorkSpace) Save(db database.DbConnection) error {
 	if err != nil {
 		return err
 	}
+	defer db.CloseDB() //关闭数据库连接，不关闭会增加新的数据库连接
 	return nil
 }
 
@@ -46,6 +47,7 @@ func (workspc *WorkSpace) FindName(db database.DbConnection, name string) string
 	if len(workspc.Name) > 0 {
 		return "0" //重复
 	}
+	defer db.CloseDB()
 	return "1"
 }
 
@@ -55,6 +57,7 @@ func (workspc *WorkSpace) Find(db database.DbConnection) (error, *WorkSpace) {
 	if err != nil {
 		return err, nil
 	}
+	defer db.CloseDB()
 	return nil, workspc
 }
 
@@ -66,6 +69,7 @@ func (workspc *WorkSpace) FindAll(db database.DbConnection) (error, []WorkSpace)
 		println(err.Error())
 		return err, nil
 	}
+	defer db.CloseDB()
 	return nil, res
 }
 
@@ -75,6 +79,7 @@ func (workspc *WorkSpace) Remove(db database.DbConnection) error {
 	if err != nil {
 		return err
 	}
+	defer db.CloseDB()
 	return nil
 }
 
@@ -87,5 +92,6 @@ func (workspc *WorkSpace) Update(db database.DbConnection) error {
 	if err != nil {
 		return err
 	}
+	defer db.CloseDB()
 	return nil
 }
